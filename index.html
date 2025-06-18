@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Void Tiny Platformer</title>
+  <style>
+    * { box-sizing: border-box; }
+    html {
+      height: 100vh;
+    }
+    body {
+      padding: 0;
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #000000;
+    }
+    #game {
+      max-width: min(100vw, calc(100vh * 4/3));
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game" width=2048 height=1536></canvas>
+  <script type="module" src="src/main.ts"></script>
+</body>
+</html>

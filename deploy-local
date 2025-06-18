@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# This script is used to deploy a game to...
+#  * Organization: Void
+#  * Game: Tiny Platformer
+#  * Server: http://localhost:3000/
+
+LABEL="${1}"
+WORK="${HOME}/.config/void"
+TOKEN="${WORK}/token-local"
+BUILD="${WORK}/build"
+BUNDLE="${WORK}/build.tgz"
+SERVER="${SERVER:-http://localhost:3000/}"
+ENDPOINT="${SERVER}api/void/tiny-platformer/share"
+START_TIME=$(date +%s)
+
+if [[ ! -n ${VOID_ACCESS_TOKEN} ]]; then
+  if [[ -f "${TOKEN}" ]]; then
+    VOID_ACCESS_TOKEN=$(cat "${TOKEN}")
+  else
+    echo "No access token found. Find your access token on your profile page at ${SERVER}profile and save it to ~/.config/void/token-local"
+    exit 1
+  fi
+fi
+
+mkdir -p ${BUILD}
+bun run build --base "./" --outDir ${BUILD} --emptyOutDir
+if [ $? -ne 0 ]; then
+  echo "Build failed, not uploading to server."
+  exit 1
+fi
+tar -czf ${BUNDLE} -C ${BUILD} .
+BUILD_TIME=$(date +%s)
+
+echo "Uploading build to ${SERVER}"
+OUTPUT=$(curl -s -X POST --fail-with-body --connect-timeout 180 --max-time 180 -H "X-Deploy-Label: ${LABEL}" -H "X-Deploy-Password: ${VOID_DEPLOY_PASSWORD}" -H "Authorization: Bearer ${VOID_ACCESS_TOKEN}" --data-binary "@${BUNDLE}" ${ENDPOINT})
+if [ $? -ne 0 ]; then
+  echo $OUTPUT
+  echo "Sorry, upload failed, please try again in a few minutes or contact support@void.dev"
+  exit 1
+fi
+UPLOAD_TIME=$(date +%s)
+
+echo "Build duration: $((BUILD_TIME - START_TIME)) seconds."
+echo "Upload duration: $((UPLOAD_TIME - BUILD_TIME)) seconds."
+echo ""
+echo $OUTPUT

@@ -1,0 +1,37 @@
+name: Deploy
+
+on:
+  push:
+  workflow_dispatch:
+
+env:
+  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install Dependencies
+        run: bun install
+
+      - name: Build Game
+        run: bun run build
+
+      - name: Get Branch Label
+        uses: vaguevoid/actions/deploy/label@v1
+        id: branch_label
+
+      - name: Deploy Game
+        uses: vaguevoid/actions/deploy/web@v1
+        with:
+          path: "dist"
+          organization: "void"
+          game: "tiny-platformer"
+          label: ${{ steps.branch_label.outputs.label }}
+          token: ${{ secrets.VOID_ACCESS_TOKEN }}
